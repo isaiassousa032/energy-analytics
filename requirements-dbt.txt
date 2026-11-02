@@ -1,6 +1,4 @@
-# dbt, instalado em virtualenv separado dentro da imagem.
-# Use a MESMA versão do duckdb de requirements.txt: um arquivo .duckdb gravado por
-# uma versão mais nova pode não abrir em uma mais antiga. Fixe as duas após o primeiro build.
-dbt-core
-dbt-duckdb
-duckdb
+# dbt em virtualenv separado. Mantenha o duckdb na MESMA versão de requirements.txt.
+dbt-core==1.12.6
+dbt-duckdb==1.11.1
+duckdb==2.0.0
