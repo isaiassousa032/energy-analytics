@@ -1,0 +1,207 @@
+# Energy Analytics — Airflow 3 (dev e produção no mesmo arquivo)
+#
+#   Dev (Codespaces):  COMPOSE_PROFILES=dev   -> 1 container "standalone"
+#   Prod (VM Azure):   COMPOSE_PROFILES=prod  -> serviços separados
+#
+# O perfil é lido do arquivo .env (veja .env.example). Um único arquivo
+# evita que dev e produção divirjam em volumes, variáveis e imagem.
+
+name: energy-analytics
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Mesma imagem (Airflow + libs de ingestão + dbt isolado) em todos os serviços.
+x-airflow-build: &airflow-build
+  context: .
+  dockerfile: docker/airflow/Dockerfile
+
+# Em dev os dados ficam dentro do clone (ignorados pelo Git).
+# Em produção, aponte as variáveis *_DIR para fora do clone (ex.: /srv/...).
+x-airflow-volumes: &airflow-volumes
+  - ${AIRFLOW_HOME_DIR:-./.local/airflow}:/opt/airflow
+  - ./dags:/opt/airflow/dags:ro
+  - ./plugins:/opt/airflow/plugins:ro
+  - ./ingestion:/opt/airflow/project/ingestion:ro
+  - ./dbt:/opt/airflow/project/dbt
+  - ${DATA_DIR:-./data}:/opt/airflow/project/data
+  - ${WAREHOUSE_DIR:-./warehouse}:/opt/airflow/project/warehouse
+
+x-airflow-env: &airflow-env
+  AIRFLOW_HOME: /opt/airflow
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${POSTGRES_PASSWORD:?Execute python .devcontainer/setup.py}@postgres/airflow
+  AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+  AIRFLOW__CORE__PARALLELISM: "2"
+  AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: "2"
+  AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: "1"
+  AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Execute python .devcontainer/setup.py}
+  AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+  AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/simple_auth_manager_passwords.json.generated
+  AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?Execute python .devcontainer/setup.py}
+  AIRFLOW__API__WORKERS: "1"
+  AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: "1"
+  AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: "60"
+  AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+  AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Sao_Paulo
+  # Específicos do Energy Analytics
+  PYTHONPATH: /opt/airflow/project
+  DBT_BIN: /home/airflow/dbt-venv/bin/dbt
+  DBT_PROFILES_DIR: /opt/airflow/project/dbt/energy_analytics
+  DUCKDB_PATH: /opt/airflow/project/warehouse/energy_analytics.duckdb
+
+x-airflow-common: &airflow-common
+  build: *airflow-build
+  image: energy-analytics-airflow:local
+  user: "${AIRFLOW_UID:-50000}:0"
+  volumes: *airflow-volumes
+  stop_grace_period: 60s
+  restart: "${RESTART_POLICY:-no}"
+  logging: *logging
+
+services:
+  # Metadados do Airflow apenas. O warehouse analítico é o DuckDB (arquivo).
+  postgres:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Execute python .devcontainer/setup.py}
+      POSTGRES_DB: airflow
+    volumes:
+      - ${POSTGRES_DIR:-./.local/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 512m
+    restart: "${RESTART_POLICY:-no}"
+    logging: *logging
+
+  # ---------------------------------------------------------------- DEV
+  airflow:
+    <<: *airflow-common
+    profiles: [dev]
+    command: standalone
+    environment:
+      <<: *airflow-env
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://localhost:8080/execution/
+    ports:
+      - "127.0.0.1:${AIRFLOW_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json, urllib.request; d=json.load(urllib.request.urlopen('http://localhost:8080/api/v2/monitor/health', timeout=5)); assert all(d[k]['status']=='healthy' for k in ('metadatabase', 'scheduler', 'dag_processor', 'triggerer')), d"
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 5
+    mem_limit: 4g
+
+  # --------------------------------------------------------------- PROD
+  # Ajuste os mem_limit ao tamanho da VM. Subir com:
+  #   docker compose up -d --build     (sem --wait: o init é um serviço que termina)
+  airflow-init:
+    <<: *airflow-common
+    profiles: [prod]
+    command: db migrate
+    environment:
+      <<: *airflow-env
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    mem_limit: 1g
+
+  airflow-apiserver:
+    <<: *airflow-common
+    profiles: [prod]
+    command: api-server
+    environment:
+      <<: *airflow-env
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    ports:
+      - "127.0.0.1:${AIRFLOW_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+    mem_limit: 1g
+
+  airflow-scheduler:
+    <<: *airflow-common
+    profiles: [prod]
+    command: scheduler
+    environment:
+      <<: *airflow-env
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+    # As tasks (ingestão, dbt, DuckDB) rodam neste container com LocalExecutor.
+    mem_limit: 3g
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    profiles: [prod]
+    command: dag-processor
+    environment:
+      <<: *airflow-env
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type DagProcessorJob --hostname \"$${HOSTNAME}\""]
+      interval: 30s
+      timeout: 30s
+      start_period: 60s
+      retries: 5
+    mem_limit: 1g
+
+  airflow-triggerer:
+    <<: *airflow-common
+    profiles: [prod]
+    command: triggerer
+    environment:
+      <<: *airflow-env
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type TriggererJob --hostname \"$${HOSTNAME}\""]
+      interval: 30s
+      timeout: 30s
+      start_period: 60s
+      retries: 5
+    mem_limit: 512m

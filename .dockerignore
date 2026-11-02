@@ -1,0 +1,14 @@
+# Evita enviar dados e estado local ao build (.local/postgres pertence a outro usuário
+# e quebra o contexto de build).
+.git
+.github
+.local
+.env
+data
+warehouse
+docs
+powerbi
+dbt
+dags
+ingestion
+**/__pycache__

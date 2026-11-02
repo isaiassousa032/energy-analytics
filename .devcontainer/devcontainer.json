@@ -1,0 +1,33 @@
+{
+  "name": "Energy Analytics",
+  "build": {"dockerfile": "Dockerfile"},
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4.1.3": {}
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb"
+  },
+  "remoteUser": "vscode",
+  "forwardPorts": [8080],
+  "otherPortsAttributes": {"onAutoForward": "ignore"},
+  "portsAttributes": {
+    "8080": {
+      "label": "Airflow",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    }
+  },
+  "postCreateCommand": "python .devcontainer/setup.py",
+  "postStartCommand": "bash .devcontainer/start.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {"files.exclude": {"**/.local": true}}
+    }
+  }
+}

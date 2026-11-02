@@ -1,0 +1,6 @@
+# Bibliotecas de ingestão, instaladas na imagem do Airflow.
+# Depois do primeiro build funcional, fixe as versões (ex.: duckdb==X.Y.Z).
+duckdb
+pyarrow
+pandas
+requests
