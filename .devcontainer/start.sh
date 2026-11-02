@@ -15,6 +15,10 @@ for attempt in {1..30}; do
   sleep 2
 done
 
+# Ao retomar o Codespace podem sobrar containers com estado inconsistente.
+# Os dados ficam em bind mounts (.local/, data/, warehouse/), então recriar é seguro.
+docker compose down --remove-orphans >/dev/null 2>&1 || true
+
 docker compose config --quiet
 docker compose up -d --build --wait --wait-timeout 300
 
