@@ -1,5 +1,0 @@
-# Bibliotecas de ingestão, instaladas na imagem do Airflow (versões fixadas).
-duckdb==2.0.0
-pyarrow==25.0.1
-pandas==3.0.5
-requests==2.34.2
