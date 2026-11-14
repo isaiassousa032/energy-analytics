@@ -2,7 +2,8 @@
   "name": "Energy Analytics",
   "build": {"dockerfile": "Dockerfile"},
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
   },
   "hostRequirements": {
     "cpus": 2
