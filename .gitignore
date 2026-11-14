@@ -7,3 +7,5 @@ target/
 logs/
 dbt_packages/
 __pycache__/
+
+create_github_issues.sh
