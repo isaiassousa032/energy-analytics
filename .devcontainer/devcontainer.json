@@ -1,0 +1,32 @@
+{
+  "name": "Energy Analytics",
+  "build": {"dockerfile": "Dockerfile"},
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "hostRequirements": {
+    "cpus": 2
+  },
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin",
+    "DBT_PROFILES_DIR": "${containerWorkspaceFolder}/dbt/energy_analytics"
+  },
+  "postCreateCommand": "pip install --user --upgrade pip && pip install --user -r requirements.txt",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "redhat.vscode-yaml",
+        "dorzey.vscode-sqlfluff",
+        "innoverio.vscode-dbt-power-user"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "files.exclude": {
+          "**/__pycache__": true
+        }
+      }
+    }
+  }
+}
