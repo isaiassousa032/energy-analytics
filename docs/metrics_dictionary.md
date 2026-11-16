@@ -10,7 +10,7 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 - **Subsistemas:** SE/CO (Sudeste/Centro-Oeste), S (Sul), NE (Nordeste) e N (Norte). **SIN** é o Sistema Interligado Nacional, a soma dos quatro. Os códigos exatos virão do dicionário de cada dataset do ONS.
 - **Região** nas perguntas de negócio significa subsistema.
 - **Período:** os dados do ONS vão de 2000 a 2026, e a janela de análise será definida na Fase 01. Os horários do ONS estão em horário local de Brasília, com horário de verão até 2018: o dia em que ele começa tem 23 horas. O tratamento de fuso nas camadas Silver e Gold será definido na Fase 02.
-- **Unidades:** MWmed (megawatt médio; confirmado pelo nome da coluna de carga diária), MW, °C, % e adimensional.
+- **Unidades:** MWmed (megawatt médio; confirmado nos dicionários oficiais do ONS), MW, °C, % e adimensional.
 - **Nomes técnicos:** inglês, snake_case. Nomes das medidas do Power BI: português.
 - **Valores ausentes:** nos arquivos antigos do ONS vêm como texto vazio. No Silver viram NULL e não são imputados no Gold: a métrica fica nula, e a regra de cobertura mínima de cada dia será definida na Fase 02.
 - **Status possíveis:** Proposta, Aprovada, Implementada, Descontinuada.
@@ -63,8 +63,8 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 | Responde | D1, D3 |
 | Modelo (proposto) | `fct_load_daily` |
 | Medida no Power BI | Carga Média |
-| Testes | `not_null`, valor maior que zero, chave única (data, subsistema) |
-| Observações | O valor diário coincide com a média horária da carga do balanço, exceto no dia de início do horário de verão em 2001 a 2012 e em 2018, quando fica cerca de 4,2% menor (provavelmente por dividir por 24 horas em um dia de 23). Três dias não têm dado para nenhum subsistema (2013-12-01, 2014-02-01 e 2015-04-09) e há uma linha espúria (S, 2013-02-02 00:00:01); ambos devem ser filtrados no Silver. |
+| Testes | `not_null`, valor maior que zero, chave única (data, subsistema). São as regras do dicionário oficial do ONS, e os três dias sem dado são exceção conhecida |
+| Observações | O valor diário coincide com a média horária da carga do balanço, exceto no dia de início do horário de verão em 2001 a 2012 e em 2018, quando fica cerca de 4,2% menor (provavelmente por dividir por 24 horas em um dia de 23). Três dias não têm dado para nenhum subsistema (2013-12-01, 2014-02-01 e 2015-04-09) e há uma linha espúria (S, 2013-02-02 00:00:01); ambos devem ser filtrados no Silver. O dicionário do ONS não permite carga nula, zero ou negativa, então essas linhas são defeitos. |
 
 ### M02 — Variação anual da carga
 
@@ -191,8 +191,8 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 | Responde | G1 |
 | Modelo (proposto) | `fct_generation_daily` |
 | Medida no Power BI | Geração por Fonte |
-| Testes | `not_null`; maior ou igual a zero; fonte dentro dos valores aceitos |
-| Observações | Nas linhas dos quatro subsistemas a geração por fonte não tem valores ausentes (eólica e solar existem desde o início, provavelmente como zero antes de entrarem em operação). Os ausentes estão só na linha `SIN` (eólica até 2005 e parte de 2006; solar até 2015). Use as linhas dos subsistemas e calcule o SIN por soma. Confirmar no dicionário PDF do ONS se há geração distribuída incluída. |
+| Testes | `not_null` nas linhas dos subsistemas (o dicionário permite nulo, mas não ocorre neles); maior ou igual a zero (regra do dicionário; aviso, pois há poucos negativos); fonte dentro dos valores aceitos |
+| Observações | Nas linhas dos quatro subsistemas a geração por fonte não tem valores ausentes (eólica e solar existem desde o início, provavelmente como zero antes de entrarem em operação). Os ausentes estão só na linha `SIN` (eólica até 2005 e parte de 2006; solar até 2015). Use as linhas dos subsistemas e calcule o SIN por soma. O dicionário descreve a oferta como a geração das usinas das quatro fontes e não menciona geração distribuída: tratar como não incluída. |
 
 ### M10 — Participação por fonte
 
@@ -240,7 +240,7 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 | Modelo (proposto) | `fct_generation_daily` |
 | Medida no Power BI | Saldo de Intercâmbio |
 | Testes | alerta quando geração − carga − intercâmbio passa de um limite (a definir); a soma dos quatro igual ao intercâmbio do `SIN` (aviso); não exigir soma zero |
-| Observações | Adota-se a coluna oficial. A relação geração − carga ≈ intercâmbio vale na média (resíduo médio próximo de zero na maioria dos subsistemas), mas há horas com resíduo grande. A soma dos quatro subsistemas coincide com o intercâmbio da linha `SIN` (em média cerca de +38 MW, e não zero; provavelmente a troca do sistema com o exterior). Não derive o saldo de carga − geração. |
+| Observações | Adota-se a coluna oficial (intercâmbio líquido em MWmed; não pode ser nulo, e zero e negativo são permitidos). O dicionário não define o sinal: a convenção positivo = exportação foi inferida dos dados. A relação geração − carga ≈ intercâmbio vale na média (resíduo médio próximo de zero na maioria dos subsistemas), mas há horas com resíduo grande. A soma dos quatro subsistemas coincide com o intercâmbio da linha `SIN` (em média cerca de +38 MW, e não zero; provavelmente a troca do sistema com o exterior). Não derive o saldo de carga − geração. |
 
 ### M13 — Pico de carga
 
@@ -294,16 +294,17 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 
 **Resolvido na exploração do ONS** (detalhes em `data_sources.md`):
 
-- Unidade da carga: MWmed. Os valores diários coincidem com a média horária do balanço, exceto no início do horário de verão.
-- Códigos de subsistema: N, NE, S e SE, mais `SIN` no balanço. Em 2026 os códigos do balanço vêm com espaços à direita.
-- Fontes do balanço: hidráulica, térmica, eólica e solar, sem ausências nas linhas dos subsistemas. A coluna oficial de intercâmbio existe.
+- Unidade: MWmed em todos os valores, confirmada nos dois dicionários oficiais (carga diária, versão 1.2, e balanço, versão 1.0). Os valores diários da carga coincidem com a média horária do balanço, exceto no início do horário de verão.
+- Regras dos dicionários: na carga diária, nada pode ser nulo, zero ou negativo. No balanço, a geração pode ser nula ou zero, mas não negativa; a carga e o intercâmbio não podem ser nulos; o intercâmbio pode ser negativo.
+- Códigos de subsistema: N, NE, S e SE, mais `SIN` no balanço. Em 2026 os códigos do balanço vêm com espaços à direita (o dicionário define 3 posições).
+- Fontes do balanço: hidráulica, térmica, eólica e fotovoltaica, sem ausências nas linhas dos subsistemas. A coluna oficial de intercâmbio existe.
 - A carga do `SIN` é a soma dos quatro subsistemas.
 - Dias sem dado: 2013-12-01, 2014-02-01 e 2015-04-09, e horas isoladas de 2013 a 2018 sem carga e intercâmbio.
 
 **Ainda em aberto:**
 
-- Conferir no dicionário PDF do ONS as unidades e definições do balanço (inclusive geração distribuída).
-- Investigar os valores suspeitos (eólica e térmica negativas, uma carga não positiva) e os resíduos grandes entre geração, carga e intercâmbio.
+- Geração distribuída: o dicionário não a menciona; tratar como não incluída até haver confirmação.
+- Decidir o tratamento dos valores que violam os dicionários (carga e intercâmbio nulos, gerações e carga negativas) e investigar os resíduos grandes entre geração, carga e intercâmbio.
 - Definir a cobertura mínima para considerar um dia válido e o tratamento do dia de 23 horas.
 - Escolher cidades e pesos por subsistema; calibrar `T_base`.
 - Escolher a janela padrão da correlação (ano ou período completo).
