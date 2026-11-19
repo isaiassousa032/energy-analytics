@@ -37,7 +37,7 @@ Projeto de portfólio de **Analytics Engineering** sobre o setor elétrico brasi
   - uma linha espúria (S, 2013-02-02 00:00:01) e três dias sem dado (2013-12-01, 2014-02-01, 2015-04-09);
   - horários locais com horário de verão (dias de 23 horas até 2018): não converta para UTC, agregue por dia;
   - intercâmbio: positivo = exportação (inferido dos dados).
-- **Open-Meteo:** Historical Weather API (`archive-api.open-meteo.com/v1/archive`). Proposta: `models=era5`, variáveis diárias `temperature_2m_mean` e `precipitation_sum`, `timezone=America/Sao_Paulo`. O ERA5 tem 5 dias de atraso. Cidades candidatas: SE (São Paulo, Rio de Janeiro, Belo Horizonte, Brasília), S (Porto Alegre, Curitiba), NE (Salvador, Fortaleza, Recife), N (Manaus, Belém). A escolha final está pendente.
+- **Open-Meteo:** Historical Weather API (`archive-api.open-meteo.com/v1/archive`). Proposta: `models=era5_seamless`, variáveis diárias `temperature_2m_mean` e `precipitation_sum`, `timezone=America/Sao_Paulo`. O ERA5 tem 5 dias de atraso. Cidades candidatas: SE (São Paulo, Rio de Janeiro, Belo Horizonte, Brasília), S (Porto Alegre, Curitiba), NE (Salvador, Fortaleza, Recife), N (Manaus, Belém). A escolha final está pendente.
 
 ## Comandos úteis
 - ONS: `python scripts/explore_ons.py list`, `profile PASTA` ou `check` (precisa de `pip install duckdb`, só local).

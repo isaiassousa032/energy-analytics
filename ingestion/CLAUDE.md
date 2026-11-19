@@ -6,6 +6,6 @@
 - Idempotência: reprocessar um período substitui a partição, nunca duplica. Registre cada carga em `bronze._load_log`.
 - Falhe de forma explícita: valide schema esperado e linhas maiores que zero em cada extração.
 - ONS: prefira Parquet e use CSV nos meses sem Parquet (o tipo das colunas muda entre anos, e ausências vêm como texto vazio). Veja `docs/data_sources.md`.
-- Open-Meteo: requisições de 1 ano por cidade, pausa entre elas (cerca de 3 s), tratamento de 429, e cache local. O ERA5 tem 5 dias de atraso: nunca peça os últimos 5 dias com `models=era5`.
+- Open-Meteo: requisições de 1 ano por cidade, pausa entre elas (cerca de 3 s), tratamento de 429, e cache local. O ERA5 tem 5 dias de atraso: nunca peça os últimos 5 dias com ERA5.
 - Código específico de warehouse fica só em `loaders/`, atrás de uma interface comum (para migrar para Databricks).
 - Credenciais só por variáveis de ambiente. Nunca grave segredos em arquivos.
