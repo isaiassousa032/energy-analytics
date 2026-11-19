@@ -2,7 +2,7 @@
 
 Plataforma analítica sobre o **setor elétrico brasileiro**: integra dados públicos de demanda e geração de energia (ONS) com dados climáticos (Open-Meteo) para responder perguntas de negócio com modelagem dimensional, testes e dashboards. Projeto de portfólio de **Analytics Engineering**, desenvolvido em fases, do dado bruto ao insight.
 
-> **Status:** em desenvolvimento. A Fase 00 (fundação e ambiente) está em andamento; veja o [roadmap](#roadmap). A versão anterior do projeto (Airflow, DuckDB e Docker Compose) está preservada na tag `v0-airflow-duckdb`.
+> **Status:** em desenvolvimento. A Fase 00 (fundação e ambiente) está em fechamento e a Fase 01 (negócio e requisitos) está em andamento: a exploração das fontes (ONS e Open-Meteo) está concluída e faltam as escolhas finais e os requisitos; veja o [roadmap](#roadmap). A versão anterior do projeto (Airflow, DuckDB e Docker Compose) está preservada na tag `v0-airflow-duckdb`.
 
 ## Perguntas de negócio
 
@@ -66,7 +66,9 @@ Fora desta versão: Airflow, Docker Compose, DuckDB e PySpark. O Airflow pode se
 ## Fontes de dados
 
 - **ONS (Operador Nacional do Sistema Elétrico):** carga e geração de energia por subsistema, pelo [Portal de Dados Abertos](https://dados.ons.org.br/). Licença CC BY 4.0.
-- **Open-Meteo:** dados meteorológicos históricos por localização, pela [API de histórico](https://open-meteo.com/en/docs/historical-weather-api). Uso gratuito apenas não comercial, com atribuição (CC BY 4.0).
+- **Open-Meteo:** dados meteorológicos históricos por localização, pela [API de histórico](https://open-meteo.com/en/docs/historical-weather-api). Uso gratuito apenas não comercial, com atribuição (CC BY 4.0). Proposta: modelo `era5_seamless`, temperatura média e precipitação diárias, em cidades representativas de cada subsistema.
+
+Os achados da exploração das duas fontes (contratos, qualidade, limites e decisões de tratamento) estão em [`docs/data_sources.md`](docs/data_sources.md).
 
 ## Como executar
 
@@ -93,7 +95,8 @@ energy-analytics/
 ├── snowflake/              # SQL de provisionamento (planejado)
 ├── dbt/energy_analytics/   # projeto dbt: staging, intermediate e marts (planejado)
 ├── powerbi/                # projeto do Power BI (planejado)
-├── docs/                   # requisitos, fontes, modelo e insights (planejado)
+├── docs/                   # planejamento, estado, dicionário de métricas e fontes de dados
+├── scripts/                # exploração das fontes (ONS e Open-Meteo), uso local
 ├── .env.example
 ├── requirements.txt
 └── README.md
@@ -103,8 +106,8 @@ energy-analytics/
 
 | Fase | Foco | Status |
 |---|---|---|
-| 00 | Fundação e ambiente | Em andamento |
-| 01 | Negócio e requisitos | A fazer |
+| 00 | Fundação e ambiente | Em fechamento |
+| 01 | Negócio e requisitos | Em andamento |
 | 02 | Arquitetura e modelagem | A fazer |
 | 03 | Ingestão com Python | A fazer |
 | 04 | Snowflake: provisionamento e Bronze | A fazer |
@@ -130,7 +133,7 @@ O acompanhamento detalhado fica nos milestones e nas issues do repositório.
 - O dbt começa na linha 1.x, madura e portátil para outros warehouses; o dbt v2 será reavaliado depois da versão 1.0.
 - Código específico de warehouse fica isolado na camada de carga, para facilitar uma migração futura para o Databricks.
 - O ONS publica arquivos mensais em CSV, XLSX e Parquet, e o Parquet não existe para todos os meses; a ingestão usará CSV quando necessário.
-- O Open-Meteo gratuito é restrito a uso não comercial e tem limite de chamadas por dia.
+- O Open-Meteo gratuito é restrito a uso não comercial e tem limite de chamadas (600 por minuto, 10.000 por dia). Nas medições, a carga histórica de 11 cidades custa cerca de 1.540 chamadas, a API dá timeouts ocasionais (a ingestão precisará de retry) e os dados do ERA5 chegam com cerca de 7 dias de defasagem.
 
 ## Licença
 

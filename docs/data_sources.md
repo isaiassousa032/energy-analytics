@@ -2,7 +2,7 @@
 
 Registro das fontes do Energy Analytics: o que cada dataset contém, como acessar, o que a exploração encontrou e como cada achado será tratado. Este documento acompanha o `metrics_dictionary.md`.
 
-> **Status:** ONS explorado em novembro de 2026 com `scripts/explore_ons.py` (checks 0 a 14). O Open-Meteo ainda será avaliado (próximo passo da Fase 01).
+> **Status:** ONS explorado em novembro de 2026 com `scripts/explore_ons.py` (checks 0 a 14). O Open-Meteo foi levantado pela documentação; falta rodar o script de exploração.
 
 ## 1. ONS (Operador Nacional do Sistema Elétrico)
 
@@ -108,7 +108,53 @@ Todas as colunas de valor estão em MWmed. A oferta é a geração das usinas hi
 
 ## 2. Open-Meteo
 
-A avaliar (item 4 da Fase 01): variáveis (temperatura a 2 m e precipitação), cidades por subsistema, fuso horário, custo ponderado das chamadas conforme o período e os limites do plano gratuito.
+Levantamento pela documentação oficial (novembro de 2026). O que depende de medição será confirmado com `scripts/explore_open_meteo.py`.
+
+- **API:** Historical Weather API, `https://archive-api.open-meteo.com/v1/archive`, sem chave.
+- **Dados:** reanálise. ERA5 (0,25°, cerca de 25 km, de 1940), ERA5-Land (0,1°, cerca de 11 km, de 1950), ERA5-Seamless, IFS e outros. O padrão (`best_match`) combina IFS, ERA5 e ERA5-Land. Para séries longas e consistentes, a documentação recomenda ERA5 ou ERA5-Land. A precipitação não existe no ERA5-Land. O ERA5 é atualizado diariamente, com 5 dias de atraso.
+- **Variáveis de interesse:** diárias `temperature_2m_mean`, `temperature_2m_max`, `temperature_2m_min` e `precipitation_sum` (as diárias exigem `timezone`); horárias, como `temperature_2m`.
+- **Fuso:** `timezone=America/Sao_Paulo` usa o deslocamento do momento da requisição em todo o período e ignora mudanças de horário de verão. Para horas que respeitam o horário de verão, pedir `timeformat=unixtime` e converter. As fronteiras diárias seguem o deslocamento fixo, o que não afeta médias diárias de forma relevante.
+- **Grade:** os valores são da célula da grade, que pode ficar a alguns quilômetros do ponto pedido; a altitude vem de um modelo de 90 m.
+- **Limites do plano gratuito (uso não comercial, sem garantia de disponibilidade):** 600 chamadas por minuto, 5.000 por hora, 10.000 por dia e 300.000 por mês. Uma chamada cobre até 14 dias e 10 variáveis; acima disso a contagem é fracionada.
+- **Estimativa da carga histórica (custo medido, ver resultados):** 11 cidades candidatas × 2000 até hoje × 2 variáveis diárias custam cerca de 1.540 chamadas (15% do limite diário), em requisições de 1 ano por cidade (cerca de 5,2 chamadas cada) e com pausa entre elas. A atualização incremental custa cerca de 11 chamadas por execução.
+- **Licença e atribuição:** dados sob CC BY 4.0. É obrigatório um link para o Open-Meteo junto de qualquer exibição dos dados (por exemplo, no rodapé do dashboard: "Weather data by Open-Meteo.com"), além de indicar as alterações feitas. As reanálises vêm do Copernicus Climate Change Service (C3S). O plano gratuito é só para uso não comercial, o que cobre um projeto de portfólio.
+**Resultados da exploração (`check`, `cities`, `tz` e `recency` rodados em 18 e 19 de novembro de 2026):**
+
+- Os cabeçalhos da resposta confirmam o limite de 600 chamadas por janela de 60 s e o custo de 1,0 para 14 dias com até 10 variáveis.
+- Unidades: temperatura em °C e precipitação em mm. Em 14 dias vieram 336 pontos horários, sem nulos.
+- Grade de São Paulo (ponto pedido: -23,5505 e -46,6333): o ERA5 usa a célula -23,500 e -46,750 (13,2 km); o ERA5-Land e o ERA5-Seamless, a célula -23,600 e -46,600 (6,5 km); o padrão (`best_match`), -23,515 e -46,611 (4,6 km). A altitude da célula é 758 m em todos.
+- Comparação para São Paulo em 2023 (365 dias):
+
+| Modelo | Temperatura média | Precipitação total | Nulos de precipitação | Dif. média de temperatura vs ERA5 |
+|---|---|---|---|---|
+| padrão (`best_match`) | 19,77 °C | 1.338,7 mm | 0 | 0,975 °C |
+| `era5` | 20,72 °C | 1.226,3 mm | 0 | referência |
+| `era5_land` | 20,23 °C | sem dado | 365 | 0,625 °C |
+| `era5_seamless` | 20,23 °C | 1.226,3 mm | 0 | 0,625 °C |
+
+- Leitura: o `era5_seamless` combina a temperatura do ERA5-Land (grade de 0,1°) com a precipitação do ERA5, sem nulos e sem trocar de modelo ao longo do tempo. Os modelos diferem de 0,6 a 1,0 °C na média anual, então é preciso escolher um e mantê-lo em toda a série.
+- Cidades, `era5_seamless` (2023-01-01 a 2023-01-14): as células ficam de 2,0 a 10,9 km do ponto pedido e a altitude é coerente com a cidade. Com o ERA5 puro (0,25°) as três primeiras cidades ficavam de 11 a 19 km.
+
+| Sub | Cidade | Célula usada | Dist. (km) | Alt. (m) | T média (°C) |
+|---|---|---|---|---|---|
+| SE | São Paulo | -23,600, -46,600 | 6,5 | 758 | 20,59 |
+| SE | Rio de Janeiro | -22,900, -43,100 | 7,5 | 12 | 25,02 |
+| SE | Belo Horizonte | -19,900, -43,900 | 4,1 | 843 | 21,11 |
+| SE | Brasília | -15,800, -47,900 | 2,0 | 1.092 | 21,22 |
+| S | Porto Alegre | -30,000, -51,200 | 4,2 | 15 | 25,24 |
+| S | Curitiba | -25,400, -49,300 | 4,1 | 920 | 19,10 |
+| NE | Salvador | -13,000, -38,600 | 10,9 | 39 | 25,92 |
+| NE | Fortaleza | -3,800, -38,500 | 8,1 | 21 | 27,14 |
+| NE | Recife | -8,000, -34,900 | 5,9 | 3 | 27,16 |
+| N | Manaus | -3,100, -60,000 | 3,2 | 47 | 25,69 |
+| N | Belém | -1,500, -48,500 | 5,0 | 19 | 26,76 |
+
+- **Estabilidade da API:** houve `ReadTimeout` (90 s) em várias chamadas, inclusive 3 tentativas seguidas em Manaus numa execução (a cidade respondeu depois, numa chamada isolada). A ingestão precisa de retry com espera crescente e não deve assumir resposta rápida.
+- **Defasagem real:** em 2026-11-19, o `era5` e o `era5_seamless` terminaram em 2026-11-12, ou seja, 7 dias de defasagem (a documentação diz 5). Os dias seguintes vêm como `null` (7 nulos na janela), então a carga deve descartar nulos da ponta e reprocessar a janela final. O padrão (`best_match`) não tem defasagem, mas muda de modelo.
+- **Fuso e horário de verão:** com `timezone=America/Sao_Paulo` no modo ISO, a API devolve 24 horas em todos os dias, inclusive em 2018-11-04, enquanto o ONS tem 23 linhas nesse dia. A série horária usa deslocamento fixo de -3 h (`utc_offset_seconds = -10800`). Como o MVP é diário e junta por data, não há problema.
+- **Custo medido:** uma requisição de 1 ano com 2 variáveis diárias custou 5,214 chamadas (`X-RateLimit-Cost`), que é 365/14 × 2/10. Dias e variáveis escalam juntos, e o piso de 1 chamada vale só para a requisição inteira. O `cost` do script estimava cerca de 5 vezes mais por multiplicar um piso de 1 em cada fator, e foi corrigido.
+
+**Proposta provisória:** modelo `era5_seamless`, variáveis diárias (temperatura média e precipitação), `timezone=America/Sao_Paulo`, requisições de 1 ano por cidade com pausa, e ingestão incremental que descarte nulos da ponta e reprocesse os últimos dias (defasagem de 7 dias, não 5).
 
 ## 3. Decisões e propostas (item 5 da Fase 01)
 
@@ -120,7 +166,8 @@ A avaliar (item 4 da Fase 01): variáveis (temperatura a 2 m e precipitação), 
 
 - Geração distribuída: o dicionário não a menciona; tratar como não incluída até haver confirmação.
 - Decidir o tratamento dos valores que violam os dicionários (achados 4, 5 e 12) e investigar os resíduos grandes (achado 11).
-- Avaliar o Open-Meteo e preencher a seção 2.
+- Open-Meteo: escolher as cidades e os pesos por subsistema (as 11 candidatas têm grade válida) e confirmar o modelo `era5_seamless`.
+- Open-Meteo: verificar se os valores dos últimos dias do ERA5 são revisados depois (afeta a janela de reprocessamento).
 
 ## 5. Atribuição
 
