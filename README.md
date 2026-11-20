@@ -2,7 +2,7 @@
 
 Plataforma analítica sobre o **setor elétrico brasileiro**: integra dados públicos de demanda e geração de energia (ONS) com dados climáticos (Open-Meteo) para responder perguntas de negócio com modelagem dimensional, testes e dashboards. Projeto de portfólio de **Analytics Engineering**, desenvolvido em fases, do dado bruto ao insight.
 
-> **Status:** em desenvolvimento. A Fase 00 (fundação e ambiente) está concluída e a Fase 01 (negócio e requisitos) está em andamento: a exploração das fontes (ONS e Open-Meteo) e as escolhas de cidades, granularidade e janela de análise estão feitas, e faltam os requisitos; veja o [roadmap](#roadmap). A versão anterior do projeto (Airflow, DuckDB e Docker Compose) está preservada na tag `v0-airflow-duckdb`.
+> **Status:** em desenvolvimento. A Fase 00 (fundação e ambiente) está concluída e a Fase 01 (negócio e requisitos) está em andamento: a exploração das fontes (ONS e Open-Meteo) e as escolhas de cidades, granularidade e janela de análise estão feitas, e os requisitos estão escritos em [`docs/requirements.md`](docs/requirements.md), em revisão; veja o [roadmap](#roadmap). A versão anterior do projeto (Airflow, DuckDB e Docker Compose) está preservada na tag `v0-airflow-duckdb`.
 
 ## Perguntas de negócio
 
