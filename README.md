@@ -2,7 +2,7 @@
 
 Plataforma analítica sobre o **setor elétrico brasileiro**: integra dados públicos de demanda e geração de energia (ONS) com dados climáticos (Open-Meteo) para responder perguntas de negócio com modelagem dimensional, testes e dashboards. Projeto de portfólio de **Analytics Engineering**, desenvolvido em fases, do dado bruto ao insight.
 
-> **Status:** em desenvolvimento. A Fase 00 (fundação e ambiente) está em fechamento e a Fase 01 (negócio e requisitos) está em andamento: a exploração das fontes (ONS e Open-Meteo) está concluída e faltam as escolhas finais e os requisitos; veja o [roadmap](#roadmap). A versão anterior do projeto (Airflow, DuckDB e Docker Compose) está preservada na tag `v0-airflow-duckdb`.
+> **Status:** em desenvolvimento. A Fase 00 (fundação e ambiente) está concluída e a Fase 01 (negócio e requisitos) está em andamento: a exploração das fontes (ONS e Open-Meteo) e as escolhas de cidades, granularidade e janela de análise estão feitas, e faltam os requisitos; veja o [roadmap](#roadmap). A versão anterior do projeto (Airflow, DuckDB e Docker Compose) está preservada na tag `v0-airflow-duckdb`.
 
 ## Perguntas de negócio
 
@@ -66,7 +66,7 @@ Fora desta versão: Airflow, Docker Compose, DuckDB e PySpark. O Airflow pode se
 ## Fontes de dados
 
 - **ONS (Operador Nacional do Sistema Elétrico):** carga e geração de energia por subsistema, pelo [Portal de Dados Abertos](https://dados.ons.org.br/). Licença CC BY 4.0.
-- **Open-Meteo:** dados meteorológicos históricos por localização, pela [API de histórico](https://open-meteo.com/en/docs/historical-weather-api). Uso gratuito apenas não comercial, com atribuição (CC BY 4.0). Proposta: modelo `era5_seamless`, temperatura média e precipitação diárias, em cidades representativas de cada subsistema.
+- **Open-Meteo:** dados meteorológicos históricos por localização, pela [API de histórico](https://open-meteo.com/en/docs/historical-weather-api). Uso gratuito apenas não comercial, com atribuição (CC BY 4.0). Modelo `era5_seamless`, temperatura média e precipitação diárias, uma cidade por subsistema (São Paulo, Curitiba, Fortaleza e Manaus). A janela de análise é de 2019 em diante.
 
 Os achados da exploração das duas fontes (contratos, qualidade, limites e decisões de tratamento) estão em [`docs/data_sources.md`](docs/data_sources.md).
 
@@ -106,7 +106,7 @@ energy-analytics/
 
 | Fase | Foco | Status |
 |---|---|---|
-| 00 | Fundação e ambiente | Em fechamento |
+| 00 | Fundação e ambiente | Concluída |
 | 01 | Negócio e requisitos | Em andamento |
 | 02 | Arquitetura e modelagem | A fazer |
 | 03 | Ingestão com Python | A fazer |

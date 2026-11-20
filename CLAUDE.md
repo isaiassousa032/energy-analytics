@@ -5,7 +5,7 @@ Projeto de portfólio de **Analytics Engineering** sobre o setor elétrico brasi
 
 ## Estado atual (detalhes em `docs/project_status.md`)
 - O projeto foi recomeçado em novembro de 2026. A versão anterior (Airflow, DuckDB e Docker Compose) está na tag `v0-airflow-duckdb`.
-- Fase 00 (fundação e ambiente) em fechamento. Fase 01 (negócio e requisitos) em andamento: indicadores, dicionário de métricas e exploração do ONS prontos; Open-Meteo, granularidade, período e `docs/requirements.md` pendentes.
+- Fase 00 (fundação e ambiente) concluída. Fase 01 (negócio e requisitos) em andamento: indicadores, dicionário de métricas, exploração do ONS e do Open-Meteo, cidades, granularidade (diária) e janela de análise (2019 em diante) decididos; faltam `docs/requirements.md` e a aprovação do dicionário de métricas.
 - A conta trial do Snowflake já existe e termina por volta de 2027-02-04. O calendário das fases está em `docs/planning.md`.
 
 ## Stack e decisões fixas
@@ -37,7 +37,7 @@ Projeto de portfólio de **Analytics Engineering** sobre o setor elétrico brasi
   - uma linha espúria (S, 2013-02-02 00:00:01) e três dias sem dado (2013-12-01, 2014-02-01, 2015-04-09);
   - horários locais com horário de verão (dias de 23 horas até 2018): não converta para UTC, agregue por dia;
   - intercâmbio: positivo = exportação (inferido dos dados).
-- **Open-Meteo:** Historical Weather API (`archive-api.open-meteo.com/v1/archive`). Proposta: `models=era5_seamless`, variáveis diárias `temperature_2m_mean` e `precipitation_sum`, `timezone=America/Sao_Paulo`. O ERA5 tem 5 dias de atraso. Cidades candidatas: SE (São Paulo, Rio de Janeiro, Belo Horizonte, Brasília), S (Porto Alegre, Curitiba), NE (Salvador, Fortaleza, Recife), N (Manaus, Belém). A escolha final está pendente.
+- **Open-Meteo:** Historical Weather API (`archive-api.open-meteo.com/v1/archive`). Proposta: `models=era5_seamless`, variáveis diárias `temperature_2m_mean` e `precipitation_sum`, `timezone=America/Sao_Paulo`. O ERA5 tem 5 dias de atraso na documentação e 7 na medição (nov. de 2026), com `null` nos dias finais. Cidades escolhidas, uma por subsistema: São Paulo (SE), Curitiba (S), Fortaleza (NE) e Manaus (N); ampliar depois da primeira análise. Janela de análise do Gold e do dashboard: 2019-01-01 em diante (a carga no Bronze e no Silver é de 2000 a 2026).
 
 ## Comandos úteis
 - ONS: `python scripts/explore_ons.py list`, `profile PASTA` ou `check` (precisa de `pip install duckdb`, só local).

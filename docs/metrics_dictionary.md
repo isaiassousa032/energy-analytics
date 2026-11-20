@@ -9,7 +9,7 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 - **Granularidade padrão:** dia × subsistema. Recortes de tempo: dia, mês e ano. Granularidade horária fica para depois da v1.0.
 - **Subsistemas:** SE/CO (Sudeste/Centro-Oeste), S (Sul), NE (Nordeste) e N (Norte). **SIN** é o Sistema Interligado Nacional, a soma dos quatro. Os códigos exatos virão do dicionário de cada dataset do ONS.
 - **Região** nas perguntas de negócio significa subsistema.
-- **Período:** os dados do ONS vão de 2000 a 2026, e a janela de análise será definida na Fase 01. Os horários do ONS estão em horário local de Brasília, com horário de verão até 2018: o dia em que ele começa tem 23 horas. O tratamento de fuso nas camadas Silver e Gold será definido na Fase 02.
+- **Período:** os dados do ONS vão de 2000 a 2026, e a janela de análise padrão do Gold e do dashboard é de 2019-01-01 em diante (decidida em 2026-11-20; a carga no Bronze e no Silver é de 2000 a 2026). Os horários do ONS estão em horário local de Brasília, com horário de verão até 2018: o dia em que ele começa tem 23 horas. O tratamento de fuso nas camadas Silver e Gold será definido na Fase 02.
 - **Unidades:** MWmed (megawatt médio; confirmado nos dicionários oficiais do ONS), MW, °C, % e adimensional.
 - **Nomes técnicos:** inglês, snake_case. Nomes das medidas do Power BI: português.
 - **Valores ausentes:** nos arquivos antigos do ONS vêm como texto vazio. No Silver viram NULL e não são imputados no Gold: a métrica fica nula, e a regra de cobertura mínima de cada dia será definida na Fase 02.
@@ -305,9 +305,9 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 
 - Geração distribuída: o dicionário não a menciona; tratar como não incluída até haver confirmação.
 - Decidir o tratamento dos valores que violam os dicionários (carga e intercâmbio nulos, gerações e carga negativas) e investigar os resíduos grandes entre geração, carga e intercâmbio.
-- Definir a cobertura mínima para considerar um dia válido e o tratamento do dia de 23 horas.
-- Escolher cidades e pesos por subsistema; calibrar `T_base`.
-- Escolher a janela padrão da correlação (ano ou período completo).
+- Definir a cobertura mínima para considerar um dia válido. O dia de 23 horas (último em 2018-11-04) fica fora da janela padrão de 2019 em diante; só precisa de tratamento se a janela for estendida.
+- Calibrar `T_base`. Cidades decididas: uma por subsistema (São Paulo, Curitiba, Fortaleza e Manaus), sem pesos.
+- Janela padrão da correlação (M07): anual, disponível para todos os anos; o dashboard abre em 2019 em diante.
 
 ## 6. Como adicionar ou alterar uma métrica
 

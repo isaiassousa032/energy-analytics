@@ -160,13 +160,16 @@ Levantamento pela documentação oficial (novembro de 2026). O que depende de me
 
 - **Histórico:** carregar de 2000 até hoje no Bronze. O volume é pequeno e o custo, trivial.
 - **Granularidade do MVP:** diária por subsistema. As métricas horárias (M13 e M14) ficam para depois.
-- **Janela de análise:** a definir após avaliar o Open-Meteo. Períodos como o racionamento de 2001, o efeito de 2020 e a crise hídrica de 2021 são candidatos a exemplos de comportamento atípico.
+- **Janela de análise (decidida em 2026-11-20):** de 2019-01-01 até o último dia com clima disponível (cerca de 7 dias antes de hoje). A carga no Bronze e no Silver continua de 2000 a 2026; a janela vale para o Gold e para o dashboard. Motivos: (1) o último dia de 23 horas é 2018-11-04, então a janela não tem esse problema; (2) permite a variação anual de 2020 contra 2019 (M04) e inclui o efeito de 2020 e a crise hídrica de 2021 como candidatos a dia atípico; (3) os três dias sem dado e a linha espúria ficam em 2013 a 2015, fora da janela; (4) a relação entre carga e temperatura muda ao longo do tempo (racionamento de 2001), e uma janela de 26 anos misturaria regimes. O M07 usa janela anual e fica disponível para todos os anos. 2026 é parcial: comparar períodos equivalentes. O racionamento de 2001 pode virar um estudo de caso à parte, só com carga.
+- **Cidades (decidido em 2026-11-20):** uma por subsistema, para começar: São Paulo (SE), Curitiba (S), Fortaleza (NE) e Manaus (N). Sem pesos por subsistema, porque cada cidade é o proxy do clima do seu subsistema; a ampliação fica para depois da primeira análise. Limitação a registrar nos requisitos: uma cidade não representa um subsistema inteiro. Hipótese ainda não medida: Fortaleza e Manaus têm temperatura quase constante, então a correlação carga × temperatura tende a ser fraca nelas.
+- **Modelo do Open-Meteo:** `era5_seamless`, com temperatura média e precipitação diárias e `timezone=America/Sao_Paulo`.
+- **Snowflake:** região AWS us-west-2 (Oregon), edição Enterprise (consome mais crédito por hora de warehouse que a Standard: manter o resource monitor e o auto-suspend de 60 s).
+- **dbt:** a v1.0 do projeto usa dbt 1.x.
 
 ## 4. Pendências
 
 - Geração distribuída: o dicionário não a menciona; tratar como não incluída até haver confirmação.
 - Decidir o tratamento dos valores que violam os dicionários (achados 4, 5 e 12) e investigar os resíduos grandes (achado 11).
-- Open-Meteo: escolher as cidades e os pesos por subsistema (as 11 candidatas têm grade válida) e confirmar o modelo `era5_seamless`.
 - Open-Meteo: verificar se os valores dos últimos dias do ERA5 são revisados depois (afeta a janela de reprocessamento).
 
 ## 5. Atribuição
