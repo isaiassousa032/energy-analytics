@@ -5,7 +5,7 @@ Projeto de portfólio de **Analytics Engineering** sobre o setor elétrico brasi
 
 ## Estado atual (detalhes em `docs/project_status.md`)
 - O projeto foi recomeçado em novembro de 2026. A versão anterior (Airflow, DuckDB e Docker Compose) está na tag `v0-airflow-duckdb`.
-- Fase 00 (fundação e ambiente) concluída. Fase 01 (negócio e requisitos) em andamento: indicadores, dicionário de métricas, exploração do ONS e do Open-Meteo, cidades, granularidade (diária) e janela de análise (2019 em diante) decididos; faltam `docs/requirements.md` e a aprovação do dicionário de métricas.
+- Fase 00 (fundação e ambiente) concluída. Fase 01 (negócio e requisitos) em andamento: indicadores, dicionário de métricas, exploração do ONS e do Open-Meteo, cidades, granularidade (diária) e janela de análise (2019 em diante) decididos; `docs/requirements.md` escrito e métricas M01 a M12 aprovadas; falta a revisão do autor para fechar a fase.
 - A conta trial do Snowflake já existe e termina por volta de 2027-02-04. O calendário das fases está em `docs/planning.md`.
 
 ## Stack e decisões fixas
@@ -48,6 +48,7 @@ Projeto de portfólio de **Analytics Engineering** sobre o setor elétrico brasi
 ## Onde está o resto (leia sob demanda, não carregue tudo)
 - `docs/planning.md`: plano completo (fases, critérios de pronto, janela do trial, decisões em aberto).
 - `docs/project_status.md`: estado atual e próximos passos. Atualize ao fim de cada tarefa.
+- `docs/requirements.md`: escopo, requisitos (RF, RD, RNF) e critérios de aceite do MVP.
 - `docs/metrics_dictionary.md`: métricas M01 a M15 (fonte da verdade).
 - `docs/data_sources.md`: fontes, contratos dos dicionários do ONS e achados.
 - As subpastas `ingestion/` e `dbt/` têm seu próprio `CLAUDE.md`, carregado quando você trabalha nelas.

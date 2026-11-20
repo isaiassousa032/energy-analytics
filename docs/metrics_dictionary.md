@@ -2,7 +2,7 @@
 
 Definições oficiais dos indicadores do Energy Analytics. Cada métrica é definida **uma vez**, na camada Gold (dbt), e consumida pelo Power BI sem recálculo. Qualquer mudança de fórmula começa neste documento, no mesmo pull request que altera o modelo.
 
-> **Status:** todas as métricas estão como **Proposta**. A exploração dos datasets do ONS já foi feita (veja `data_sources.md`) e ajustou algumas definições; faltam o Open-Meteo e a aprovação final na Fase 01. Os modelos e colunas citados são provisórios e serão fechados na Fase 02.
+> **Status:** as métricas do MVP (M01 a M12) estão **Aprovadas** desde 2026-11-20, depois da exploração do ONS e do Open-Meteo (veja `data_sources.md`). M13 a M15 continuam como **Proposta**, porque ficam para depois da v1.0. Os modelos e colunas citados são provisórios e serão fechados na Fase 02.
 
 ## 1. Convenções
 
@@ -17,23 +17,23 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 
 ## 2. Índice
 
-| ID | Nome técnico | Métrica | Unidade | Fonte | Responde | Prioridade |
-|---|---|---|---|---|---|---|
-| M01 | `avg_load_mwmed` | Carga média diária | MWmed | Carga diária | D1, D3 | MVP |
-| M02 | `load_yoy_change_pct` | Variação anual da carga | % | Carga diária | D1 | MVP |
-| M03 | `load_rank_day`, `load_rank_month` | Ranking de maior demanda | posição | Carga diária | D2 | MVP |
-| M04 | `load_share_sin_pct` | Participação do subsistema na carga do SIN | % | Carga diária | D3 | MVP |
-| M05 | `avg_temp_c` | Temperatura média por subsistema | °C | Open-Meteo e pesos | C1, C2 | MVP |
-| M06 | `cooling_degree_days` | Graus-dia de resfriamento | °C·dia | Open-Meteo e pesos | C1 | MVP |
-| M07 | `load_temp_correlation` | Correlação carga × temperatura | −1 a 1 | Carga e clima | C1, C2 | MVP |
-| M08 | `load_zscore`, `is_atypical_day` | Dia atípico | z-score e sinalizador | Carga diária | C3 | MVP |
-| M09 | `generation_mwmed` | Geração por fonte | MWmed | Balanço de energia | G1 | MVP |
-| M10 | `generation_share_pct` | Participação por fonte | % | Balanço de energia | G1 | MVP |
-| M11 | `generation_to_load_ratio_pct` | Cobertura da carga pela geração | % | Balanço de energia | G2 | MVP |
-| M12 | `net_export_mwmed` | Saldo de intercâmbio (positivo = exportação) | MWmed | Balanço de energia | G2 | MVP |
-| M13 | `peak_load_mw` | Pico de carga | MW | Balanço de energia (carga horária) | D2 | Depois |
-| M14 | `load_factor_pct` | Fator de carga | % | Balanço de energia (carga horária) | D2 | Depois |
-| M15 | `load_temp_sensitivity` | Sensibilidade da carga à temperatura | MWmed por °C·dia | Carga e clima | C2 | Depois |
+| ID | Nome técnico | Métrica | Unidade | Fonte | Responde | Prioridade | Status |
+|---|---|---|---|---|---|---|---|
+| M01 | `avg_load_mwmed` | Carga média diária | MWmed | Carga diária | D1, D3 | MVP | Aprovada |
+| M02 | `load_yoy_change_pct` | Variação anual da carga | % | Carga diária | D1 | MVP | Aprovada |
+| M03 | `load_rank_day`, `load_rank_month` | Ranking de maior demanda | posição | Carga diária | D2 | MVP | Aprovada |
+| M04 | `load_share_sin_pct` | Participação do subsistema na carga do SIN | % | Carga diária | D3 | MVP | Aprovada |
+| M05 | `avg_temp_c` | Temperatura média por subsistema | °C | Open-Meteo e cidade por subsistema | C1, C2 | MVP | Aprovada |
+| M06 | `cooling_degree_days` | Graus-dia de resfriamento | °C·dia | Open-Meteo e cidade por subsistema | C1 | MVP | Aprovada |
+| M07 | `load_temp_correlation` | Correlação carga × temperatura | −1 a 1 | Carga e clima | C1, C2 | MVP | Aprovada |
+| M08 | `load_zscore`, `is_atypical_day` | Dia atípico | z-score e sinalizador | Carga diária | C3 | MVP | Aprovada |
+| M09 | `generation_mwmed` | Geração por fonte | MWmed | Balanço de energia | G1 | MVP | Aprovada |
+| M10 | `generation_share_pct` | Participação por fonte | % | Balanço de energia | G1 | MVP | Aprovada |
+| M11 | `generation_to_load_ratio_pct` | Cobertura da carga pela geração | % | Balanço de energia | G2 | MVP | Aprovada |
+| M12 | `net_export_mwmed` | Saldo de intercâmbio (positivo = exportação) | MWmed | Balanço de energia | G2 | MVP | Aprovada |
+| M13 | `peak_load_mw` | Pico de carga | MW | Balanço de energia (carga horária) | D2 | Depois | Proposta |
+| M14 | `load_factor_pct` | Fator de carga | % | Balanço de energia (carga horária) | D2 | Depois | Proposta |
+| M15 | `load_temp_sensitivity` | Sensibilidade da carga à temperatura | MWmed por °C·dia | Carga e clima | C2 | Depois | Proposta |
 
 ## 3. Perguntas de negócio e métricas
 
@@ -119,16 +119,16 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 | Campo | Definição |
 |---|---|
 | Nome técnico | `avg_temp_c` |
-| Descrição | Temperatura média diária do subsistema, ponderada pelas cidades representativas. |
-| Fórmula | Σ (peso da cidade × temperatura média diária da cidade), com Σ pesos = 1 por subsistema. A temperatura diária da cidade é a média das leituras horárias de temperatura a 2 m. |
+| Descrição | Temperatura média diária do subsistema, medida na cidade escolhida como representativa (uma por subsistema na v1.0). |
+| Fórmula | `temperature_2m_mean` da cidade do subsistema no dia (média diária da temperatura a 2 m, calculada pela API). Cidades: São Paulo (SE), Curitiba (S), Fortaleza (NE) e Manaus (N). Se houver mais de uma cidade no futuro: Σ (peso × temperatura da cidade), com Σ pesos = 1. |
 | Unidade | °C |
 | Granularidade | dia × subsistema |
-| Fonte | Open-Meteo (API de histórico) e seed de pesos |
+| Fonte | Open-Meteo (API de histórico) e seed de cidade por subsistema |
 | Responde | C1, C2 |
 | Modelo (proposto) | `fct_weather_daily` e `mart_load_vs_temperature` |
 | Medida no Power BI | Temperatura Média |
-| Testes | soma dos pesos igual a 1 por subsistema; faixa plausível (−5 a 50 °C); sem dias faltantes |
-| Observações | Cidades e pesos são definidos na Fase 01 e 02 (por exemplo, por população ou por carga). Os dados do Open-Meteo são reanálise (ERA5), não medições de estação. |
+| Testes | exatamente uma cidade por subsistema (ou soma dos pesos igual a 1, se houver várias); faixa plausível (−5 a 50 °C); sem dias faltantes na janela (os dias finais do ERA5 vêm nulos pela defasagem de 7 dias) |
+| Observações | Cidades decididas em 2026-11-20. Uma cidade não representa o subsistema inteiro: é uma limitação conhecida. Os dados do Open-Meteo são reanálise (ERA5), não medições de estação. |
 
 ### M06 — Graus-dia de resfriamento
 
@@ -139,7 +139,7 @@ Definições oficiais dos indicadores do Energy Analytics. Cada métrica é defi
 | Fórmula | max(0, temperatura média do dia − T_base). Para períodos: soma dos valores diários. |
 | Unidade | °C·dia |
 | Granularidade | dia × subsistema |
-| Fonte | Open-Meteo (API de histórico) e seed de pesos |
+| Fonte | Open-Meteo (API de histórico) e seed de cidade por subsistema |
 | Responde | C1 |
 | Modelo (proposto) | `mart_load_vs_temperature` |
 | Medida no Power BI | Graus-Dia de Resfriamento |
