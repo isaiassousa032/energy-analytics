@@ -34,7 +34,7 @@ Fechar indicadores e dicionário de métricas; explorar o ONS (feito); documenta
 **Pronto quando:** cada pergunta de negócio aponta para um dataset e para indicadores definidos.
 
 ### Fase 02: Arquitetura e modelagem
-Diagrama (`docs/architecture.md`); modelo dimensional (`docs/data_model.md`): dimensões `dim_date`, `dim_subsystem`, `dim_energy_source`, `dim_location`; fatos `fct_load_daily`, `fct_generation_daily`, `fct_weather_daily`; mart `mart_load_vs_temperature`; seed de pesos cidade para subsistema; convenções; rascunho do SQL do Snowflake; materialização, carga idempotente, fuso e tratamento dos valores que violam os dicionários do ONS; testes por modelo.
+Diagrama (`docs/architecture.md`); modelo dimensional (`docs/data_model.md`): dimensões `dim_date`, `dim_subsystem`, `dim_energy_source`, `dim_location`; fatos `fct_load_daily`, `fct_generation_daily`, `fct_weather_daily`; mart `mart_load_vs_temperature`; seed de cidade por subsistema (uma cidade por subsistema, sem pesos por ora); convenções; rascunho do SQL do Snowflake; materialização, carga idempotente, fuso e tratamento dos valores que violam os dicionários do ONS; testes por modelo.
 **Pronto quando:** documentos existem e o grain de cada fato está claro.
 
 ### Fase 03: Ingestão com Python
