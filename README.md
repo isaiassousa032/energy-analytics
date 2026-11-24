@@ -32,15 +32,7 @@ Plataforma analítica sobre o **setor elétrico brasileiro**: integra dados púb
 
 Arquitetura medalhão no Snowflake, com transformações em dbt e consumo no Power BI.
 
-```mermaid
-flowchart LR
-    ONS["ONS<br/>dados abertos"] --> L
-    OM["Open-Meteo<br/>API histórica"] --> L
-    L["Python<br/>extração e carga"] --> B["Bronze<br/>tabelas brutas"]
-    B --> S["Silver<br/>dbt: staging e intermediate"]
-    S --> G["Gold<br/>dbt: marts"]
-    G --> P["Power BI"]
-```
+![Arquitetura do pipeline Energy Analytics](docs/energy-analytics-readme.gif)
 
 | Camada | Responsabilidade | Implementação |
 |---|---|---|
